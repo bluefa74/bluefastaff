@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HorizonPvP — Panel Gérant</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:      #05070f;
+    --surface: #0b0f1e;
+    --surface2:#0f1426;
+    --border:  #1a2040;
+    --border2: #252d50;
+    --accent:  #f59e0b;
+    --accent2: #ef4444;
+    --glow:    #f59e0b33;
+    --text:    #c8d0e8;
+    --muted:   #4a5278;
+    --blue:    #4e6ef2;
+    --success: #22c55e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(245,158,11,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,158,11,.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; z-index: 100;
+  }
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sidebar-logo .icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), #b45309);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 0 16px var(--glow);
+  }
+  .sidebar-logo strong { display: block; font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; color: #fff; letter-spacing: .04em; line-height: 1.1; }
+  .sidebar-logo small { font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+
+  .nav { padding: 16px 12px; flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px;
+    color: var(--muted); font-size: 13.5px; font-weight: 500;
+    cursor: pointer; transition: all .15s;
+    user-select: none; margin-bottom: 2px; letter-spacing: .02em;
+  }
+  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-item:hover { background: rgba(245,158,11,.08); color: var(--text); }
+  .nav-item.active { background: rgba(245,158,11,.15); color: #fff; border: 1px solid rgba(245,158,11,.25); }
+  .nav-section { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 12px 12px 6px; opacity: .7; }
+
+  .sidebar-user { padding: 16px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border2); object-fit: cover; flex-shrink: 0; }
+  .avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #b45309); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff; flex-shrink: 0; }
+  .user-info { flex: 1; min-width: 0; }
+  .user-info strong { display: block; font-size: 13px; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-info span { font-size: 11px; color: var(--muted); }
+  .btn-logout { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 4px; border-radius: 4px; transition: color .15s; }
+  .btn-logout:hover { color: var(--accent2); }
+
+  .main { margin-left: 240px; padding: 32px; min-height: 100vh; position: relative; z-index: 1; }
+
+  .page-header { margin-bottom: 28px; display: flex; align-items: flex-start; justify-content: space-between; }
+  .page-header h1 { font-family: 'Rajdhani', sans-serif; font-size: 26px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+  .page-header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px; position: relative; overflow: hidden;
+    animation: fadeUp .4s ease both;
+  }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), #b45309); }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 8px; }
+  .stat-value { font-family: 'Rajdhani', sans-serif; font-size: 30px; font-weight: 700; color: #fff; line-height: 1; }
+  .stat-icon { position: absolute; top: 16px; right: 16px; font-size: 22px; opacity: .15; }
+
+  .section { display: none; animation: fadeUp .3s ease; }
+  .section.active { display: block; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .card-header h2 { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 600; color: #fff; letter-spacing: .03em; }
+  .card-header .count { margin-left: auto; font-size: 11px; color: var(--muted); background: var(--surface2); padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border); }
+  .card-body { padding: 20px; }
+
+  /* Filtres */
+  .filters { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .filter-input {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 8px 14px;
+    color: var(--text); font-family: 'Exo 2', sans-serif; font-size: 13px;
+    outline: none; transition: border .15s;
+  }
+  .filter-input:focus { border-color: var(--accent); }
+  .filter-input::placeholder { color: var(--muted); }
+
+  /* Table ZIPs */
+  .zip-table { width: 100%; border-collapse: collapse; }
+  .zip-table th { text-align: left; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .zip-table td { padding: 13px 14px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+  .zip-table tr:last-child td { border-bottom: none; }
+  .zip-table tr:hover td { background: rgba(245,158,11,.03); }
+
+  .staff-name { font-weight: 500; color: #fff; }
+  .zip-period { font-size: 11px; color: var(--accent); background: rgba(245,158,11,.1); padding: 2px 8px; border-radius: 20px; border: 1px solid rgba(245,158,11,.2); }
+  .zip-note { font-size: 11px; color: var(--muted); }
+  .zip-date { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .zip-size { font-size: 11px; color: var(--muted); }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 7px; font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .05em; border: none; cursor: pointer; transition: all .15s; text-decoration: none; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #b45309); color: #fff; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px var(--glow); }
+  .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+  .btn-ghost:hover { border-color: var(--blue); color: #fff; }
+  .btn-danger { background: rgba(239,68,68,.1); color: #ef4444; border: 1px solid rgba(239,68,68,.2); }
+  .btn-danger:hover { background: rgba(239,68,68,.2); }
+  .btn-sm { padding: 6px 12px; font-size: 11px; }
+
+  /* Staff overview table */
+  .staff-table { width: 100%; border-collapse: collapse; }
+  .staff-table th { text-align: left; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .staff-table td { padding: 13px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .staff-table tr:last-child td { border-bottom: none; }
+  .staff-table tr:hover td { background: rgba(245,158,11,.03); }
+  .claims-bar { display: flex; align-items: center; gap: 10px; }
+  .bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--accent)); border-radius: 3px; transition: width .6s ease; }
+  .claims-num { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: var(--blue); min-width: 28px; }
+
+  .empty-state { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; }
+  .empty-icon { font-size: 32px; margin-bottom: 10px; opacity: .5; }
+
+  .toast-wrap { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 9999; }
+  .toast { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 18px; font-size: 13px; color: var(--text); box-shadow: 0 8px 32px rgba(0,0,0,.4); animation: toastIn .3s ease both; display: flex; align-items: center; gap: 10px; min-width: 260px; }
+  .toast.success { border-color: rgba(34,197,94,.3); }
+  .toast.error   { border-color: rgba(239,68,68,.3); }
+  @keyframes toastIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: none; } }
+
+  /* Modal confirm */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal-bg.show { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 28px; max-width: 380px; width: 90%; animation: fadeUp .25s ease; }
+  .modal h3 { font-family: 'Rajdhani', sans-serif; font-size: 20px; color: #fff; margin-bottom: 10px; }
+  .modal p { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  .badge-gerant { background: rgba(245,158,11,.15); color: var(--accent); border: 1px solid rgba(245,158,11,.3); font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; letter-spacing: .06em; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon">👑</div>
+    <div>
+      <strong>HorizonPvP</strong>
+      <small>Panel Gérant</small>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section">Gestion</div>
+    <div class="nav-item active" onclick="showSection('overview', this)">
+      <span class="nav-icon">📊</span> Vue globale
+    </div>
+    <div class="nav-item" onclick="showSection('zips', this)">
+      <span class="nav-icon">📦</span> Tous les ZIPs
+    </div>
+    <div class="nav-item" onclick="showSection('staff', this)">
+      <span class="nav-icon">👥</span> Staff
+    </div>
+    <div class="nav-section">Autre</div>
+    <div class="nav-item" onclick="location.href='/dashboard'">
+      <span class="nav-icon">🔙</span> Mon Dashboard
+    </div>
+  </nav>
+
+  <div class="sidebar-user">
+    <div id="sidebarAvatar" class="avatar-placeholder">G</div>
+    <div class="user-info">
+      <strong id="sidebarName">Gérant</strong>
+      <span>👑 Gérant Staff</span>
+    </div>
+    <button class="btn-logout" onclick="location.href='/auth/logout'" title="Déconnexion">🚪</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- OVERVIEW -->
+  <section class="section active" id="section-overview">
+    <div class="page-header">
+      <div>
+        <h1>Panel Gérant <span class="badge-gerant">ACCÈS COMPLET</span></h1>
+        <p>Vue d'ensemble complète de l'équipe staff.</p>
+      </div>
+      <button class="btn btn-primary" onclick="refreshAll()">🔄 Actualiser</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Staff actifs</div>
+        <div class="stat-value" id="totalStaff">—</div>
+        <div class="stat-icon">👥</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total claims</div>
+        <div class="stat-value" id="totalClaims">—</div>
+        <div class="stat-icon">🎫</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ZIPs reçus</div>
+        <div class="stat-value" id="totalZips">—</div>
+        <div class="stat-icon">📦</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Top Staff</div>
+        <div class="stat-value" style="font-size:16px;margin-top:6px" id="topStaff">—</div>
+        <div class="stat-icon">🏆</div>
+      </div>
+    </div>
+
+    <!-- Top 5 rapide -->
+    <div class="card">
+      <div class="card-header"><span>🏆</span><h2>Top 5 Staff — Claims</h2></div>
+      <div class="card-body">
+        <table class="staff-table" id="quickLbTable">
+          <thead><tr><th>#</th><th>Staff</th><th>Claims</th><th>ZIPs</th></tr></thead>
+          <tbody id="quickLbBody"><tr><td colspan="4" class="empty-state">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOUS LES ZIPS -->
+  <section class="section" id="section-zips">
+    <div class="page-header">
+      <div>
+        <h1>Tous les ZIPs reçus</h1>
+        <p>Téléchargez ou supprimez les quotas de votre équipe.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>📦</span>
+        <h2>ZIPs soumis</h2>
+        <span class="count" id="allZipsCount">—</span>
+      </div>
+      <div class="card-body" style="padding-bottom:0">
+        <div class="filters">
+          <input class="filter-input" id="filterStaff" placeholder="🔍 Filtrer par staff..." oninput="filterZips()"/>
+          <input class="filter-input" id="filterPeriod" placeholder="📅 Filtrer par période..." oninput="filterZips()"/>
+        </div>
+      </div>
+      <div style="padding:0 20px 20px">
+        <table class="zip-table" id="zipsTable">
+          <thead>
+            <tr>
+              <th>Staff</th>
+              <th>Fichier</th>
+              <th>Période</th>
+              <th>Note</th>
+              <th>Taille</th>
+              <th>Envoyé le</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="zipsBody">
+            <tr><td colspan="7" class="empty-state"><div class="empty-icon">⏳</div>Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAFF -->
+  <section class="section" id="section-staff">
+    <div class="page-header">
+      <div>
+        <h1>Vue équipe Staff</h1>
+        <p>Activité détaillée de chaque membre.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span>👥</span><h2>Membres</h2><span class="count" id="staffCount">—</span></div>
+      <div class="card-body" style="padding:0">
+        <table class="staff-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Staff</th>
+              <th>Claims</th>
+              <th>ZIPs envoyés</th>
+              <th>Dernier claim</th>
+            </tr>
+          </thead>
+          <tbody id="staffBody">
+            <tr><td colspan="5" class="empty-state">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Modal confirm suppression -->
+<div class="modal-bg" id="deleteModal">
+  <div class="modal">
+    <h3>⚠️ Supprimer le ZIP ?</h3>
+    <p>Cette action est <strong style="color:#ef4444">irréversible</strong>.<br/>Le fichier sera définitivement supprimé.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let ME = null;
+let allZipsData = [];
+let pendingDeleteFile = null;
+
+async function init() {
+  try {
+    const res = await fetch('/api/me');
+    if (!res.ok) { location.href = '/'; return; }
+    ME = await res.json();
+    if (!ME.isGerant) { location.href = '/dashboard'; return; }
+    renderUser();
+    loadOverview();
+  } catch(e) { location.href = '/'; }
+}
+
+function renderUser() {
+  const u = ME.user;
+  document.getElementById('sidebarName').textContent = u.globalName || u.username;
+  if (u.avatar) {
+    const img = document.createElement('img');
+    img.src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`;
+    img.className = 'avatar';
+    document.getElementById('sidebarAvatar').replaceWith(img);
+  } else {
+    document.getElementById('sidebarAvatar').textContent = (u.globalName || u.username)[0].toUpperCase();
+  }
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function showSection(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+
+  if (name === 'zips')  loadAllZips();
+  if (name === 'staff') loadStaff();
+}
+
+// ── OVERVIEW ──────────────────────────────────────────────────────────────────
+async function loadOverview() {
+  const [lb, zips] = await Promise.all([
+    fetch('/api/leaderboard').then(r => r.json()),
+    fetch('/api/all-zips').then(r => r.json()),
+  ]);
+
+  const totalClaims = lb.reduce((sum, s) => sum + s.claims, 0);
+  document.getElementById('totalStaff').textContent  = lb.length;
+  document.getElementById('totalClaims').textContent = totalClaims;
+  document.getElementById('totalZips').textContent   = zips.length;
+  document.getElementById('topStaff').textContent    = lb[0] ? lb[0].username : '—';
+
+  // Quick LB top 5
+  const body = document.getElementById('quickLbBody');
+  const top5 = lb.slice(0, 5);
+  const maxClaims = top5[0]?.claims || 1;
+  body.innerHTML = top5.map((s, i) => `
+    <tr>
+      <td style="color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:15px">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1)}</td>
+      <td class="staff-name">${s.username}</td>
+      <td>
+        <div class="claims-bar">
+          <div class="bar-track"><div class="bar-fill" style="width:${(s.claims/maxClaims)*100}%"></div></div>
+          <span class="claims-num">${s.claims}</span>
+        </div>
+      </td>
+      <td style="color:var(--muted)">${s.zipCount}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" class="empty-state">Aucune donnée.</td></tr>';
+}
+
+// ── ALL ZIPS ──────────────────────────────────────────────────────────────────
+async function loadAllZips() {
+  const res = await fetch('/api/all-zips');
+  allZipsData = await res.json();
+  renderZips(allZipsData);
+}
+
+function renderZips(data) {
+  document.getElementById('allZipsCount').textContent = `${data.length} fichier(s)`;
+  const body = document.getElementById('zipsBody');
+  if (!data.length) {
+    body.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-icon">📦</div>Aucun ZIP reçu.</td></tr>';
+    return;
+  }
+  body.innerHTML = data.map(z => `
+    <tr>
+      <td class="staff-name">${z.username}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${z.originalName || z.filename}">${z.originalName || z.filename}</td>
+      <td><span class="zip-period">${z.period || '—'}</span></td>
+      <td class="zip-note">${z.note || '—'}</td>
+      <td class="zip-size">${formatSize(z.size)}</td>
+      <td class="zip-date">${formatDate(z.uploadedAt)}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <a href="/api/download-zip/${z.filename}" class="btn btn-ghost btn-sm">⬇️</a>
+          <button class="btn btn-danger btn-sm" onclick="confirmDelete('${z.filename}')">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterZips() {
+  const staff  = document.getElementById('filterStaff').value.toLowerCase();
+  const period = document.getElementById('filterPeriod').value.toLowerCase();
+  const filtered = allZipsData.filter(z =>
+    z.username.toLowerCase().includes(staff) &&
+    (z.period || '').toLowerCase().includes(period)
+  );
+  renderZips(filtered);
+}
+
+// ── STAFF ──────────────────────────────────────────────────────────────────────
+async function loadStaff() {
+  const lb = await fetch('/api/leaderboard').then(r => r.json());
+  document.getElementById('staffCount').textContent = `${lb.length} membre(s)`;
+  const maxClaims = lb[0]?.claims || 1;
+  const body = document.getElementById('staffBody');
+  if (!lb.length) { body.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun staff enregistré.</td></tr>'; return; }
+  body.innerHTML = lb.map((s, i) => `
+    <tr>
+      <td style="color:var(--muted);font-size:13px">#${i+1}</td>
+      <td class="staff-name">${s.username}</td>
+      <td>
+        <div class="claims-bar">
+          <div class="bar-track"><div class="bar-fill" style="width:${(s.claims/maxClaims)*100}%"></div></div>
+          <span class="claims-num">${s.claims}</span>
+        </div>
+      </td>
+      <td style="color:var(--muted)">${s.zipCount} ZIP${s.zipCount !== 1 ? 's' : ''}</td>
+      <td class="zip-date">${s.lastClaim ? formatDate(s.lastClaim) : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ── DELETE ──────────────────────────────────────────────────────────────────────
+function confirmDelete(filename) {
+  pendingDeleteFile = filename;
+  document.getElementById('deleteModal').classList.add('show');
+  document.getElementById('confirmDeleteBtn').onclick = async () => {
+    closeModal();
+    try {
+      const res = await fetch(`/api/delete-zip/${pendingDeleteFile}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) { toast('ZIP supprimé.', 'success'); loadAllZips(); }
+      else toast(data.error || 'Erreur.', 'error');
+    } catch(e) { toast('Erreur réseau.', 'error'); }
+    pendingDeleteFile = null;
+  };
+}
+function closeModal() { document.getElementById('deleteModal').classList.remove('show'); }
+
+// ── REFRESH ──────────────────────────────────────────────────────────────────
+async function refreshAll() { await loadOverview(); toast('Données actualisées.', 'success'); }
+
+// ── UTILS ────────────────────────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function formatSize(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+function toast(msg, type='success') {
+  const wrap = document.getElementById('toastWrap');
+  const el   = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> ${msg}`;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// Fermer modal en cliquant dehors
+document.getElementById('deleteModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+init();
+</script>
+</body>
+</html>

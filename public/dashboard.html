@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HorizonPvP — Dashboard Staff</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:      #05070f;
+    --surface: #0b0f1e;
+    --surface2:#0f1426;
+    --border:  #1a2040;
+    --border2: #252d50;
+    --accent:  #4e6ef2;
+    --accent2: #7c3aed;
+    --glow:    #4e6ef255;
+    --text:    #c8d0e8;
+    --muted:   #4a5278;
+    --danger:  #ef4444;
+    --success: #22c55e;
+    --warn:    #f59e0b;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(78,110,242,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(78,110,242,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+  }
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sidebar-logo .icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 0 16px var(--glow);
+    flex-shrink: 0;
+  }
+  .sidebar-logo strong {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: .04em;
+    line-height: 1.1;
+    display: block;
+  }
+  .sidebar-logo small { font-size: 10px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+
+  .nav { padding: 16px 12px; flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    user-select: none;
+    margin-bottom: 2px;
+    letter-spacing: .02em;
+  }
+  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-item:hover { background: rgba(78,110,242,.08); color: var(--text); }
+  .nav-item.active { background: rgba(78,110,242,.15); color: #fff; border: 1px solid rgba(78,110,242,.25); }
+  .nav-section {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 12px 6px;
+    opacity: .7;
+  }
+
+  .sidebar-user {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--border2);
+    background: var(--surface2);
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .avatar-placeholder {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; color: #fff;
+    flex-shrink: 0;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-info strong { display: block; font-size: 13px; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-info span { font-size: 11px; color: var(--muted); }
+  .btn-logout {
+    background: none; border: none;
+    color: var(--muted); font-size: 16px;
+    cursor: pointer; padding: 4px;
+    border-radius: 4px;
+    transition: color .15s;
+  }
+  .btn-logout:hover { color: var(--danger); }
+
+  /* ── MAIN ── */
+  .main { margin-left: 240px; padding: 32px; min-height: 100vh; position: relative; z-index: 1; }
+
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 26px; font-weight: 700;
+    color: #fff; letter-spacing: .03em;
+  }
+  .page-header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ── STATS CARDS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp .4s ease both;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+  .stat-card:nth-child(2) { animation-delay: .05s; }
+  .stat-card:nth-child(3) { animation-delay: .1s; }
+
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 10px; }
+  .stat-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 36px; font-weight: 700;
+    color: #fff; line-height: 1;
+  }
+  .stat-icon {
+    position: absolute;
+    top: 18px; right: 18px;
+    font-size: 24px; opacity: .15;
+  }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .stat-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .badge-staff  { background: rgba(78,110,242,.15); color: var(--accent); border: 1px solid rgba(78,110,242,.3); }
+  .badge-gerant { background: rgba(245,158,11,.15); color: var(--warn);   border: 1px solid rgba(245,158,11,.3); }
+
+  /* ── SECTIONS ── */
+  .section { display: none; animation: fadeUp .3s ease; }
+  .section.active { display: block; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-header h2 { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 600; color: #fff; letter-spacing: .03em; }
+  .card-header .count {
+    margin-left: auto;
+    font-size: 11px; color: var(--muted);
+    background: var(--surface2);
+    padding: 3px 10px; border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+  .card-body { padding: 20px; }
+
+  /* ── TABLE TICKETS ── */
+  .ticket-list { list-style: none; }
+  .ticket-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    animation: fadeUp .3s ease both;
+  }
+  .ticket-item:last-child { border-bottom: none; }
+  .ticket-name { font-weight: 500; color: var(--text); }
+  .ticket-category {
+    font-size: 11px; padding: 2px 8px; border-radius: 20px;
+    background: rgba(78,110,242,.12); color: var(--accent);
+    border: 1px solid rgba(78,110,242,.2);
+  }
+  .ticket-date { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .empty-state { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; }
+  .empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; opacity: .5; }
+
+  /* ── UPLOAD ZIP ── */
+  .upload-area {
+    border: 2px dashed var(--border2);
+    border-radius: 10px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+  }
+  .upload-area:hover, .upload-area.drag { border-color: var(--accent); background: rgba(78,110,242,.04); }
+  .upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 36px; margin-bottom: 10px; }
+  .upload-area h3 { font-family: 'Rajdhani', sans-serif; font-size: 18px; color: #fff; margin-bottom: 6px; }
+  .upload-area p { font-size: 12px; color: var(--muted); }
+
+  .upload-form { margin-top: 20px; display: none; }
+  .upload-form.show { display: block; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .form-group input, .form-group textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    transition: border .15s;
+    outline: none;
+  }
+  .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+  .form-group textarea { resize: none; height: 70px; }
+
+  /* Preview fichier sélectionné */
+  .file-preview {
+    display: none;
+    background: rgba(34,197,94,.07);
+    border: 1px solid rgba(34,197,94,.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--success);
+    margin-bottom: 12px;
+    align-items: center; gap: 10px;
+  }
+  .file-preview.show { display: flex; }
+
+  /* ── BOUTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: .06em;
+    border: none; cursor: pointer;
+    transition: all .15s;
+    text-decoration: none;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 16px rgba(78,110,242,.3); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(78,110,242,.45); }
+  .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+  .btn-ghost:hover { border-color: var(--accent); color: #fff; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; }
+  .btn-danger { background: rgba(239,68,68,.15); color: var(--danger); border: 1px solid rgba(239,68,68,.2); }
+  .btn-danger:hover { background: rgba(239,68,68,.25); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+  /* ── ZIPS TABLE ── */
+  .zips-list { list-style: none; }
+  .zip-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .zip-item:last-child { border-bottom: none; }
+  .zip-icon { font-size: 22px; }
+  .zip-info { flex: 1; min-width: 0; }
+  .zip-name { font-weight: 500; color: #fff; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .zip-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .zip-size { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  /* ── PROGRESS BAR ── */
+  .upload-progress { display: none; margin-top: 16px; }
+  .upload-progress.show { display: block; }
+  .progress-bar {
+    height: 6px; background: var(--border);
+    border-radius: 3px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 3px;
+    transition: width .3s;
+    width: 0%;
+  }
+  .progress-text { font-size: 12px; color: var(--muted); margin-top: 6px; text-align: center; }
+
+  /* ── TOAST ── */
+  .toast-wrap { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 9999; }
+  .toast {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13px;
+    color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    animation: toastIn .3s ease both;
+    display: flex; align-items: center; gap: 10px;
+    min-width: 260px;
+  }
+  .toast.success { border-color: rgba(34,197,94,.3); }
+  .toast.error   { border-color: rgba(239,68,68,.3); }
+  @keyframes toastIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: none; } }
+
+  /* ── LEADERBOARD ── */
+  .lb-table { width: 100%; border-collapse: collapse; }
+  .lb-table th {
+    text-align: left; font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+  }
+  .lb-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .lb-table tr:last-child td { border-bottom: none; }
+  .lb-table tr:hover td { background: rgba(78,110,242,.04); }
+  .lb-rank { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: var(--muted); }
+  .lb-rank.gold   { color: #f59e0b; }
+  .lb-rank.silver { color: #94a3b8; }
+  .lb-rank.bronze { color: #b45309; }
+  .lb-claims { font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; color: var(--accent); }
+  .lb-you { background: rgba(78,110,242,.06) !important; }
+  .lb-you td { color: #fff; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .main { margin-left: 0; padding: 20px; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="icon">⚡</div>
+    <div>
+      <strong>HorizonPvP</strong>
+      <small>Staff Portal</small>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section">Navigation</div>
+    <div class="nav-item active" onclick="showSection('overview')">
+      <span class="nav-icon">📊</span> Vue d'ensemble
+    </div>
+    <div class="nav-item" onclick="showSection('tickets')">
+      <span class="nav-icon">🎫</span> Mes Tickets
+    </div>
+    <div class="nav-item" onclick="showSection('upload')">
+      <span class="nav-icon">📦</span> Envoyer un ZIP
+    </div>
+    <div class="nav-item" onclick="showSection('leaderboard')">
+      <span class="nav-icon">🏆</span> Classement
+    </div>
+    <div id="gerantNavItem" style="display:none">
+      <div class="nav-section">Gérant</div>
+      <div class="nav-item" onclick="location.href='/gerant'">
+        <span class="nav-icon">👑</span> Panel Gérant
+      </div>
+    </div>
+  </nav>
+
+  <div class="sidebar-user">
+    <div id="sidebarAvatar" class="avatar-placeholder">?</div>
+    <div class="user-info">
+      <strong id="sidebarName">Chargement...</strong>
+      <span id="sidebarRole">Staff</span>
+    </div>
+    <button class="btn-logout" onclick="location.href='/auth/logout'" title="Déconnexion">🚪</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- OVERVIEW -->
+  <section class="section active" id="section-overview">
+    <div class="page-header">
+      <h1>Vue d'ensemble</h1>
+      <p id="welcomeText">Bienvenue sur votre dashboard staff.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Tickets Claim</div>
+        <div class="stat-value" id="statClaims">—</div>
+        <div class="stat-sub">Total de votre activité</div>
+        <div class="stat-icon">🎫</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ZIPs envoyés</div>
+        <div class="stat-value" id="statZips">—</div>
+        <div class="stat-sub">Quotas soumis</div>
+        <div class="stat-icon">📦</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Votre rôle</div>
+        <div class="stat-value" style="font-size:22px;margin-top:4px" id="statRole">—</div>
+        <div class="stat-sub" id="statRoleSub">Membre de l'équipe</div>
+        <div class="stat-icon">🛡️</div>
+      </div>
+    </div>
+
+    <!-- Derniers tickets -->
+    <div class="card">
+      <div class="card-header">
+        <span>🕒</span>
+        <h2>Derniers tickets claim</h2>
+        <span class="count" id="lastTicketsCount">0 ticket(s)</span>
+      </div>
+      <div class="card-body">
+        <ul class="ticket-list" id="lastTicketsList">
+          <li class="empty-state">
+            <div class="empty-icon">🎫</div>
+            Chargement...
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKETS -->
+  <section class="section" id="section-tickets">
+    <div class="page-header">
+      <h1>Mes Tickets Claimés</h1>
+      <p>Historique complet de vos tickets pris en charge.</p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span>🎫</span>
+        <h2>Historique</h2>
+        <span class="count" id="allTicketsCount">—</span>
+      </div>
+      <div class="card-body">
+        <ul class="ticket-list" id="allTicketsList">
+          <li class="empty-state"><div class="empty-icon">⏳</div>Chargement...</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- UPLOAD ZIP -->
+  <section class="section" id="section-upload">
+    <div class="page-header">
+      <h1>Envoyer un ZIP</h1>
+      <p>Soumettez votre quota de la période sous forme de fichier .zip.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span>📦</span><h2>Nouveau ZIP</h2></div>
+      <div class="card-body">
+
+        <div class="upload-area" id="uploadArea">
+          <input type="file" accept=".zip,application/zip" id="fileInput" onchange="onFileSelect(event)"/>
+          <div class="upload-icon">📂</div>
+          <h3>Glissez votre ZIP ici</h3>
+          <p>ou cliquez pour sélectionner — max 50 MB</p>
+        </div>
+
+        <div class="file-preview" id="filePreview">
+          <span>📄</span>
+          <span id="filePreviewName">—</span>
+          <span id="filePreviewSize" style="margin-left:auto;font-size:11px;color:var(--muted)">—</span>
+        </div>
+
+        <div class="upload-form" id="uploadForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Période couverte</label>
+              <input type="text" id="fieldPeriod" placeholder="ex: Semaine 22 / Mai 2026"/>
+            </div>
+            <div class="form-group">
+              <label>Note (optionnel)</label>
+              <input type="text" id="fieldNote" placeholder="ex: Rapport complet avec screens"/>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="submitZip()" id="btnSubmit">
+            <span>📤</span> ENVOYER LE ZIP
+          </button>
+        </div>
+
+        <div class="upload-progress" id="uploadProgress">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-text" id="progressText">Envoi en cours...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mes ZIPs -->
+    <div class="card">
+      <div class="card-header">
+        <span>📁</span>
+        <h2>Mes ZIPs envoyés</h2>
+        <span class="count" id="myZipsCount">—</span>
+      </div>
+      <div class="card-body">
+        <ul class="zips-list" id="myZipsList">
+          <li class="empty-state"><div class="empty-icon">📦</div>Aucun ZIP envoyé pour l'instant.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section class="section" id="section-leaderboard">
+    <div class="page-header">
+      <h1>Classement Staff</h1>
+      <p>Classement par nombre de tickets claimés.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span>🏆</span><h2>Top Staff</h2></div>
+      <div class="card-body" style="padding:0">
+        <table class="lb-table" id="lbTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Staff</th>
+              <th>Tickets claim</th>
+              <th>ZIPs</th>
+              <th>Dernier claim</th>
+            </tr>
+          </thead>
+          <tbody id="lbBody">
+            <tr><td colspan="5" class="empty-state">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- TOASTS -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+let ME = null;
+let selectedFile = null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const res = await fetch('/api/me');
+    if (!res.ok) { location.href = '/'; return; }
+    ME = await res.json();
+    renderUser();
+    renderOverview();
+  } catch(e) {
+    location.href = '/';
+  }
+}
+
+function renderUser() {
+  const u = ME.user;
+  document.getElementById('sidebarName').textContent = u.globalName || u.username;
+  document.getElementById('sidebarRole').textContent = ME.isGerant ? '👑 Gérant Staff' : '🛡️ Staff';
+
+  if (u.avatar) {
+    const img = document.createElement('img');
+    img.src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`;
+    img.alt = u.username;
+    img.className = 'avatar';
+    document.getElementById('sidebarAvatar').replaceWith(img);
+  } else {
+    document.getElementById('sidebarAvatar').textContent = (u.globalName || u.username)[0].toUpperCase();
+  }
+
+  if (ME.isGerant) document.getElementById('gerantNavItem').style.display = 'block';
+
+  document.getElementById('welcomeText').textContent =
+    `Bienvenue, ${u.globalName || u.username} ! Voici un résumé de votre activité.`;
+}
+
+function renderOverview() {
+  document.getElementById('statClaims').textContent = ME.claims;
+  document.getElementById('statZips').textContent   = ME.zips.length;
+
+  if (ME.isGerant) {
+    document.getElementById('statRole').textContent   = '👑 Gérant';
+    document.getElementById('statRoleSub').textContent = 'Accès complet';
+  } else {
+    document.getElementById('statRole').textContent   = '🛡️ Staff';
+    document.getElementById('statRoleSub').textContent = 'Membre de l\'équipe';
+  }
+
+  // Derniers 5 tickets
+  const last5 = (ME.claimedTickets || []).slice(-5).reverse();
+  document.getElementById('lastTicketsCount').textContent = `${ME.claims} ticket(s)`;
+  renderTicketList('lastTicketsList', last5);
+}
+
+function renderTicketList(elId, tickets) {
+  const ul = document.getElementById(elId);
+  if (!tickets.length) {
+    ul.innerHTML = '<li class="empty-state"><div class="empty-icon">🎫</div>Aucun ticket claim pour l\'instant.</li>';
+    return;
+  }
+  ul.innerHTML = tickets.map(t => `
+    <li class="ticket-item">
+      <span class="ticket-name">${t.ticketName || t.ticketId || 'Ticket'}</span>
+      <span class="ticket-category">${t.category || 'N/A'}</span>
+      <span class="ticket-date">${formatDate(t.claimedAt)}</span>
+    </li>
+  `).join('');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  if (name === 'tickets') loadAllTickets();
+  if (name === 'upload')  loadMyZips();
+  if (name === 'leaderboard') loadLeaderboard();
+}
+
+function loadAllTickets() {
+  const all = (ME.claimedTickets || []).slice().reverse();
+  document.getElementById('allTicketsCount').textContent = `${all.length} ticket(s)`;
+  renderTicketList('allTicketsList', all);
+}
+
+// ── UPLOAD ────────────────────────────────────────────────────────────────────
+function onFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  selectedFile = file;
+  const preview = document.getElementById('filePreview');
+  document.getElementById('filePreviewName').textContent = file.name;
+  document.getElementById('filePreviewSize').textContent = formatSize(file.size);
+  preview.classList.add('show');
+  document.getElementById('uploadForm').classList.add('show');
+
+  const area = document.getElementById('uploadArea');
+  area.querySelector('h3').textContent = '✅ Fichier sélectionné';
+  area.querySelector('p').textContent  = 'Remplissez les infos ci-dessous et envoyez.';
+}
+
+// Drag & drop
+const area = document.getElementById('uploadArea');
+area.addEventListener('dragover',  e => { e.preventDefault(); area.classList.add('drag'); });
+area.addEventListener('dragleave', ()  => area.classList.remove('drag'));
+area.addEventListener('drop', e => {
+  e.preventDefault(); area.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    document.getElementById('fileInput').files = e.dataTransfer.files;
+    onFileSelect({ target: { files: [file] } });
+  }
+});
+
+async function submitZip() {
+  if (!selectedFile) return toast('Sélectionnez un fichier ZIP.', 'error');
+  const period = document.getElementById('fieldPeriod').value.trim();
+  if (!period) return toast('Précisez la période couverte.', 'error');
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+
+  const form = new FormData();
+  form.append('zipFile', selectedFile);
+  form.append('period', period);
+  form.append('note', document.getElementById('fieldNote').value.trim());
+
+  document.getElementById('uploadProgress').classList.add('show');
+  const fill = document.getElementById('progressFill');
+  const txt  = document.getElementById('progressText');
+
+  // Fausse progression pendant l'upload réel
+  let prog = 0;
+  const interval = setInterval(() => {
+    prog = Math.min(prog + Math.random() * 15, 90);
+    fill.style.width = prog + '%';
+    txt.textContent  = `Envoi en cours... ${Math.round(prog)}%`;
+  }, 200);
+
+  try {
+    const res  = await fetch('/api/upload-zip', { method: 'POST', body: form });
+    const data = await res.json();
+    clearInterval(interval);
+
+    if (data.success) {
+      fill.style.width = '100%';
+      txt.textContent  = '✅ ZIP envoyé avec succès !';
+      toast('ZIP envoyé avec succès !', 'success');
+      ME.zips.push(data.file);
+      document.getElementById('statZips').textContent = ME.zips.length;
+      // Reset form
+      setTimeout(() => {
+        document.getElementById('uploadProgress').classList.remove('show');
+        document.getElementById('uploadForm').classList.remove('show');
+        document.getElementById('filePreview').classList.remove('show');
+        selectedFile = null;
+        fill.style.width = '0%';
+        area.querySelector('h3').textContent = 'Glissez votre ZIP ici';
+        area.querySelector('p').textContent  = 'ou cliquez pour sélectionner — max 50 MB';
+        document.getElementById('fileInput').value = '';
+        loadMyZips();
+      }, 1500);
+    } else {
+      toast(data.error || 'Erreur lors de l\'envoi.', 'error');
+      document.getElementById('uploadProgress').classList.remove('show');
+    }
+  } catch(e) {
+    clearInterval(interval);
+    toast('Erreur réseau.', 'error');
+    document.getElementById('uploadProgress').classList.remove('show');
+  }
+  btn.disabled = false;
+}
+
+function loadMyZips() {
+  const zips = (ME.zips || []).slice().reverse();
+  document.getElementById('myZipsCount').textContent = `${zips.length} fichier(s)`;
+  const ul = document.getElementById('myZipsList');
+  if (!zips.length) {
+    ul.innerHTML = '<li class="empty-state"><div class="empty-icon">📦</div>Aucun ZIP envoyé.</li>';
+    return;
+  }
+  ul.innerHTML = zips.map(z => `
+    <li class="zip-item">
+      <span class="zip-icon">📄</span>
+      <div class="zip-info">
+        <div class="zip-name">${z.originalName || z.filename}</div>
+        <div class="zip-meta">📅 ${z.period || 'N/A'} ${z.note ? '· ' + z.note : ''} · ${formatDate(z.uploadedAt)}</div>
+      </div>
+      <span class="zip-size">${formatSize(z.size)}</span>
+      <a href="/api/download-zip/${z.filename}" class="btn btn-ghost btn-sm">⬇️ Télécharger</a>
+    </li>
+  `).join('');
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────────────────────────
+async function loadLeaderboard() {
+  const res  = await fetch('/api/leaderboard');
+  const data = await res.json();
+  const body = document.getElementById('lbBody');
+  if (!data.length) { body.innerHTML = '<tr><td colspan="5" class="empty-state">Aucune donnée.</td></tr>'; return; }
+
+  const rankClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+  body.innerHTML = data.map((s, i) => `
+    <tr class="${s.userId === ME.user.id ? 'lb-you' : ''}">
+      <td><span class="lb-rank ${rankClass(i)}">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1)}</span></td>
+      <td>${s.username} ${s.userId === ME.user.id ? '<span class="stat-badge badge-staff">Vous</span>' : ''}</td>
+      <td><span class="lb-claims">${s.claims}</span></td>
+      <td>${s.zipCount}</td>
+      <td>${s.lastClaim ? formatDate(s.lastClaim) : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function formatSize(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+function toast(msg, type='success') {
+  const wrap = document.getElementById('toastWrap');
+  const el   = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> ${msg}`;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+init();
+</script>
+</body>
+</html>
